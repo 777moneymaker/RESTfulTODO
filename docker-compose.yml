@@ -1,0 +1,28 @@
+version: '3.9'
+services:
+  # Database service begin
+  database:
+    container_name: todos_db
+    image: "postgres:13"
+    volumes:
+      - todo-storage:/var/lib/postgresql/data/
+    environment:
+      - "POSTGRES_HOST_AUTH_METHOD=trust"
+    restart: unless-stopped
+  # Database service end
+  # --- 
+  # Web service begin
+  web:
+    build: .
+    command: python /app/manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - 8000:8000
+    depends_on:
+      - database
+    restart: unless-stopped
+  # Web service end
+
+volumes:
+  todo-storage:
