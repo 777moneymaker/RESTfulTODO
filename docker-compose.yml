@@ -14,15 +14,28 @@ services:
   # Web service begin
   web:
     build: .
-    command: python /app/manage.py runserver 0.0.0.0:8000
+    command: gunicorn todos.wsgi:application --bind 0.0.0.0:8000
     volumes:
-      - .:/app
-    ports:
-      - 8000:8000
+      - staticfiles:/app/staticfiles/
+    expose:
+      - 8000
     depends_on:
       - database
     restart: unless-stopped
+    env_file:
+      - ./.env
   # Web service end
+  # nginx begin
+  nginx: # Our reverse proxy proxying request and serving statics
+    build: ./nginx
+    volumes:
+      - staticfiles:/app/staticfiles/
+    ports:
+      - 8000:80 # map host 8080 to nginx 80 on which it listen's to
+    depends_on:
+      - web # strongly depends on web
+  # nginx end
 
 volumes:
   todo-storage:
+  staticfiles:  
